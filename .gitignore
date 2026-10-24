@@ -1,0 +1,62 @@
+# Gradle
+.gradle/
+build/
+**/build/
+out/
+captures/
+
+# Gradle wrapper jar (keep wrapper scripts, but jar is usually fetched; uncomment if you don't want to commit it)
+# gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration file (sdk path, etc.)
+local.properties
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+.cxx/
+release/
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+captures/
+
+# Kotlin/Native
+.konan/
+
+# Compose Multiplatform / Kotlin Multiplatform
+**/kotlin-js-store/
+**/build/
+**/.kotlin/
+
+# iOS / Xcode (if targeting iOS)
+*.xcworkspace
+*.xcuserstate
+**/xcuserdata/
+Pods/
+*.ipa
+DerivedData/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Logs
+*.log
+
+# Node (if using JS target tooling)
+node_modules/
+
+# Env / secrets
+*.env
+.env.local
+
+# Misc OS/editor
+*.swp
+*~
