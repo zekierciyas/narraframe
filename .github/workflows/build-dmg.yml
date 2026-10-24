@@ -1,0 +1,57 @@
+name: Build check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "composeApp/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - ".github/workflows/build-dmg.yml"
+  push:
+    branches: [main]
+    paths:
+      - "composeApp/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - ".github/workflows/build-dmg.yml"
+
+jobs:
+  build-dmg:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build app image
+        run: ./gradlew :composeApp:createDistributable --no-daemon
+
+      - name: Ad-hoc codesign app bundle
+        run: |
+          APP_PATH=$(find composeApp/build/compose/binaries/main/app -maxdepth 1 -name "*.app")
+          echo "Signing: $APP_PATH"
+          codesign --force --deep --sign - "$APP_PATH"
+          codesign --verify --deep --strict "$APP_PATH"
+
+      - name: Package DMG from signed app
+        run: |
+          APP_PATH=$(find composeApp/build/compose/binaries/main/app -maxdepth 1 -name "*.app")
+          mkdir -p composeApp/build/compose/binaries/main/dmg
+          jpackage --type dmg \
+            --app-image "$APP_PATH" \
+            --name Narraframe \
+            --dest composeApp/build/compose/binaries/main/dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Narraframe-dmg
+          path: composeApp/build/compose/binaries/main/dmg/*.dmg
+          if-no-files-found: error

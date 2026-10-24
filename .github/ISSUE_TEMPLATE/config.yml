@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/zekierciyas/narraframe/discussions
+    about: Ask questions and share videos you made in Discussions.
+  - name: Security vulnerability
+    url: https://github.com/zekierciyas/narraframe/security/advisories/new
+    about: Report security problems privately, not as a public issue.

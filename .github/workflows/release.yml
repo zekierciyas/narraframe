@@ -1,0 +1,94 @@
+name: Release (macOS DMG)
+
+# Builds the macOS app, wraps it in a DMG and publishes a GitHub Release whose notes
+# show the DMG download link, install steps and the generated changelog.
+#
+#   git tag v1.2.0 && git push origin v1.2.0      → published release
+#   Actions → Release (macOS DMG) → Run workflow  → draft release for a version
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build, e.g. 1.2.0 (creates a draft release)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-latest   # Apple Silicon runner → arm64 app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: v
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then V="${{ github.event.inputs.version }}"; else V="${GITHUB_REF_NAME#v}"; fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          # jpackage needs a numeric MAJOR.MINOR.PATCH; drop any pre-release suffix
+          echo "app=${V%%-*}" >> "$GITHUB_OUTPUT"
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+          echo "dmg=Narraframe-$V-macos-arm64.dmg" >> "$GITHUB_OUTPUT"
+
+      - name: Build app
+        run: ./gradlew :composeApp:createDistributable -PappVersion=${{ steps.v.outputs.app }} --no-daemon
+
+      - name: Sign (ad-hoc) and package DMG
+        run: |
+          APP=$(find composeApp/build/compose/binaries/main/app -maxdepth 1 -name "*.app")
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --deep --strict "$APP"
+          mkdir -p dist
+          jpackage --type dmg --app-image "$APP" --name Narraframe \
+            --app-version ${{ steps.v.outputs.app }} --dest dist
+          mv dist/*.dmg "dist/${{ steps.v.outputs.dmg }}"
+          shasum -a 256 "dist/${{ steps.v.outputs.dmg }}" | tee "dist/${{ steps.v.outputs.dmg }}.sha256"
+          echo "SHA256=$(cut -d' ' -f1 "dist/${{ steps.v.outputs.dmg }}.sha256")" >> "$GITHUB_ENV"
+          echo "SIZE_MB=$(( $(stat -f%z "dist/${{ steps.v.outputs.dmg }}") / 1048576 ))" >> "$GITHUB_ENV"
+
+      - name: Write release notes
+        run: |
+          URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.v.outputs.tag }}/${{ steps.v.outputs.dmg }}"
+          cat > notes.md <<EOF
+          ## ⬇️ Download
+
+          | Platform | File | Size |
+          |---|---|---|
+          | macOS · Apple Silicon (M1 or newer) | [**${{ steps.v.outputs.dmg }}**]($URL) | ${SIZE_MB} MB |
+
+          SHA-256: \`${SHA256}\`
+
+          ### Install
+          1. Open the DMG and drag **Narraframe** into **Applications**.
+          2. The app is not notarized by Apple yet. Before the first launch, run once in Terminal:
+             \`\`\`
+             xattr -cr /Applications/Narraframe.app
+             \`\`\`
+          3. Open Narraframe. The setup wizard downloads the local AI engines and models you choose.
+
+          > Narraframe has only been tested on macOS so far. Windows and Linux builds are on the roadmap — contributions welcome!
+
+          EOF
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          name: Narraframe ${{ steps.v.outputs.version }}
+          draft: ${{ github.event_name == 'workflow_dispatch' }}
+          prerelease: ${{ contains(steps.v.outputs.version, '-') }}
+          body_path: notes.md
+          generate_release_notes: true   # appended after body_path: "What's changed" + contributors
+          files: |
+            dist/${{ steps.v.outputs.dmg }}
+            dist/${{ steps.v.outputs.dmg }}.sha256

@@ -1,0 +1,14 @@
+# Weekly update PRs for GitHub Actions and Gradle dependencies.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies]
+    open-pull-requests-limit: 5

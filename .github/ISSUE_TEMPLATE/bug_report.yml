@@ -1,0 +1,49 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please check existing issues first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Settings → Models and pick …
+        2. Paste a script and press Generate
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Narraframe version
+      placeholder: e.g. 1.0.0 or the commit hash
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Computer
+      placeholder: e.g. macOS 15.2, MacBook Air M3, 16 GB RAM
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Models, voice and compute mode
+      placeholder: e.g. Llama 3.2 1B, DreamShaper 8 LCM, Kokoro, Automatic (Metal)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log excerpt
+      description: From ~/.narraframe/logs/app-YYYY-MM-DD.log — the lines around the error.
+      render: text
