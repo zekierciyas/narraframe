@@ -1,0 +1,8 @@
+# Base runtime for the neural TTS sidecar (Kokoro).
+# Qwen3-TTS dependencies live in requirements-qwen.txt and are installed on demand.
+fastapi>=0.115
+uvicorn>=0.30
+numpy>=1.26
+kokoro-onnx>=0.3.7
+onnxruntime>=1.20
+huggingface_hub>=0.25

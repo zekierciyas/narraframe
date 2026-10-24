@@ -1,0 +1,4 @@
+# Extra packages for Qwen3-TTS, installed only when a Qwen3 engine is chosen.
+torch>=2.3
+transformers>=4.45
+qwen-tts>=0.1 ; python_version >= "3.10"
