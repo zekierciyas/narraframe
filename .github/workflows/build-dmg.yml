@@ -50,7 +50,7 @@ jobs:
             --name Narraframe \
             --dest composeApp/build/compose/binaries/main/dmg
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Narraframe-dmg
           path: composeApp/build/compose/binaries/main/dmg/*.dmg
